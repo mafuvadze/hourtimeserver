@@ -148,11 +148,32 @@ app.get('/api/get_classes', function(req, res) {
 });
 
 
-app.get('/api/get_classes', function(req, res) {
-    databaseref.child('courses').once('value').then(function(snapshot) {
+app.post('/api/create_oh', function(req, res) {
+    var time = req.body['time'];
+    var course_id = req.body['course_id'];
+    var ta_name = req.body['name']
+    databaseref.child('courses').child(course_id).child('hours').once('value').then(function(snapshot) {
             if (snapshot.val()) {
-                res.status(200).send(snapshot.val());
+                var hours = snapshot.val();
+                var offhour = {
+                    'time' : time,
+                    'ta_name' : ta_name
+                }
+                
+                hours.push(offhour);
+                databaseref.child('courses').child(course_id).child('hours').push(offhour);
+                res.status(200).send({
+                    success: true
+                });
             } else {
+                var offhour = {
+                    'time' : time,
+                    'ta_name' : ta_name
+                }
+                
+                var hours = [offhour];
+                databaseref.child('courses').child(course_id).child('hours').push(offhour);
+
                 res.status(200).send({
                     success: true
                 });
@@ -164,3 +185,5 @@ app.get('/api/get_classes', function(req, res) {
         });
 
 });
+
+
