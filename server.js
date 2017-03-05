@@ -147,18 +147,46 @@ app.get('/api/get_classes', function(req, res) {
 
 });
 
+app.get('/api/get_class', function(req, res) {
+    var course_id = req.query['course_id'];
+    
+    if(!course_id){
+        res.status(400).send({
+            'success' : false,
+            'cause' : 'no course id'
+        });
+        return;
+    }
+    databaseref.child('courses').child(course_id).once('value').then(function(snapshot) {
+            if (snapshot.val()) {
+                res.status(200).send(snapshot.val());ß
+            } else {
+                res.status(400).send({
+                    success: false
+                });
+            }
+        })
+        .catch(function(error) {
+            res.status(400).send(error);
+            console.log(error);
+        });
+
+});
+
 
 app.post('/api/create_oh', function(req, res) {
     var time = req.body['time'];
     var course_id = req.body['course_id'];
     var ta_name = req.body['name']
-    databaseref.child('courses').child(course_id).child('hours').once('value').then(function(snapshot) {
+    var location = req.body['location'];
+    databaseref.child('courses').child(course_id).child('office_hours').once('value').then(function(snapshot) {
             if (snapshot.val()) {
-                var hours = snapshot.val();
+                var hours = snapshot.val(); 
                 var offhour = {
                     'time' : time,
-                    'ta_name' : ta_name
-                }
+                    'ta_name' : ta_name,
+                    'location' : location
+                };
                 
                 hours.push(offhour);
                 databaseref.child('courses').child(course_id).child('hours').push(offhour);
@@ -168,11 +196,12 @@ app.post('/api/create_oh', function(req, res) {
             } else {
                 var offhour = {
                     'time' : time,
-                    'ta_name' : ta_name
-                }
+                    'ta_name' : ta_name,
+                    'location' : location
+                };
                 
                 var hours = [offhour];
-                databaseref.child('courses').child(course_id).child('hours').push(offhour);
+                databaseref.child('courses').child(course_id).child('office_hours').push(offhour);
 
                 res.status(200).send({
                     success: true
